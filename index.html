@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test de Electrocompatibilidad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1410;
+    --panel:#121F1A;
+    --panel-raised:#1A2B23;
+    --paper:#E9F3ED;
+    --dim:#7FA093;
+    --green:#3DDC97;
+    --green-bright:#6CE8B4;
+    --blue:#47B8E0;
+    --amber:#E8A855;
+    --red:#E0645C;
+    --hair:rgba(233,243,237,0.09);
+    --hair-strong:rgba(233,243,237,0.20);
+    --font-display:"Sora",sans-serif;
+    --font-body:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --font-mono:"JetBrains Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 460px at 15% -8%, rgba(61,220,151,0.10), transparent 55%),
+      radial-gradient(ellipse 900px 460px at 90% 10%, rgba(71,184,224,0.10), transparent 55%),
+      var(--ink);
+    color:var(--paper);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--green);color:var(--ink);}
+  button{font-family:inherit;}
+  .app{max-width:840px;margin:0 auto;padding:0 24px 130px;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .topbar{position:sticky;top:0;z-index:60;background:rgba(11,20,16,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--hair);}
+  .topbar-inner{max-width:840px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:16px;height:56px;}
+  .brand-mark{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;white-space:nowrap;}
+  .track{flex:1;height:3px;background:var(--hair-strong);border-radius:2px;overflow:hidden;}
+  .track-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));width:0%;transition:width .4s cubic-bezier(.4,0,.2,1);}
+  .track-count{font-family:var(--font-mono);font-size:12px;color:var(--dim);white-space:nowrap;min-width:44px;text-align:right;}
+
+  .hero{padding:80px 0 36px;}
+  .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;color:var(--green);text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--green);}
+  h1.title{font-family:var(--font-display);font-weight:800;font-size:clamp(32px,6vw,50px);line-height:1.08;letter-spacing:-.01em;margin:0 0 20px;}
+  h1.title em{font-style:normal;color:var(--green);}
+  .lede{font-size:17px;line-height:1.6;color:var(--dim);max-width:600px;margin:0 0 12px;}
+
+  .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:30px 0 8px;}
+  .role-card{border-radius:8px;padding:22px 20px;background:var(--panel);border:1px solid var(--hair-strong);cursor:pointer;transition:all .15s;text-align:left;appearance:none;color:var(--paper);}
+  .role-card:hover{border-color:var(--green);}
+  .role-card.active{border-color:var(--green);background:var(--panel-raised);box-shadow:0 0 0 1px var(--green);}
+  .role-card .rc-name{font-family:var(--font-display);font-weight:700;font-size:16px;margin-bottom:6px;}
+  .role-card .rc-desc{font-size:12.5px;line-height:1.5;color:var(--dim);}
+
+  .instrument{padding:26px 0;border-top:1px solid var(--hair);}
+  .instrument .meta-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
+  .meta-value{font-size:14.5px;line-height:1.65;color:var(--paper);}
+  .meta-value b{color:var(--paper);font-weight:600;}
+
+  .dim-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px;}
+  .dim-mini{border-radius:6px;padding:14px 16px;background:var(--panel);border:1px solid var(--hair-strong);border-left:3px solid var(--green);display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .dim-mini .dm-name{font-family:var(--font-display);font-weight:700;font-size:13.5px;}
+  .dim-mini .dm-weight{font-family:var(--font-mono);font-size:11px;color:var(--dim);white-space:nowrap;}
+
+  .scale-legend{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+  .scale-row{display:flex;gap:10px;align-items:baseline;font-size:13px;color:var(--paper);}
+  .scale-row .sn{font-family:var(--font-mono);color:var(--green);font-weight:700;min-width:16px;}
+
+  .text-input{width:100%;background:var(--panel-raised);border:1px solid var(--hair-strong);color:var(--paper);border-radius:3px;padding:11px 14px;font-family:inherit;font-size:14px;}
+
+  .cta-row{margin-top:44px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .cta{appearance:none;border:none;cursor:pointer;background:var(--green);color:var(--ink);font-family:var(--font-display);font-weight:800;letter-spacing:.01em;font-size:16px;padding:16px 32px;border-radius:2px;transition:transform .15s ease, background .15s ease;}
+  .cta:hover{background:var(--green-bright);transform:translateY(-1px);}
+  .cta:active{transform:translateY(0);}
+  .cta.ghost{background:transparent;color:var(--paper);box-shadow:inset 0 0 0 1px var(--hair-strong);}
+  .cta.ghost:hover{box-shadow:inset 0 0 0 1px var(--green);color:var(--green);background:transparent;}
+  .cta:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+  .cta-note{font-family:var(--font-mono);font-size:12px;color:var(--dim);}
+
+  .quiz-head{padding:56px 0 18px;}
+  .dim-header{padding:44px 0 20px;border-top:1px solid var(--hair);margin-top:8px;}
+  .dim-header:first-of-type{border-top:none;margin-top:0;}
+  .dim-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:8px;}
+  .dim-title{font-family:var(--font-display);font-size:22px;font-weight:800;margin:0 0 6px;}
+  .dim-sub{font-size:13.5px;color:var(--dim);margin:0;line-height:1.5;}
+
+  .q-card{padding:24px 0;border-bottom:1px solid var(--hair);}
+  .q-top{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;}
+  .q-idx{font-family:var(--font-mono);font-size:11px;color:var(--ink);background:var(--dim);border-radius:2px;padding:3px 7px;flex-shrink:0;margin-top:3px;min-width:28px;text-align:center;}
+  .q-text{font-size:15.5px;line-height:1.5;color:var(--paper);}
+
+  .opt-list{display:flex;flex-direction:column;gap:8px;}
+  .opt-item{display:flex;gap:12px;align-items:flex-start;background:var(--panel-raised);border:1px solid var(--hair-strong);border-radius:5px;padding:12px 14px;cursor:pointer;transition:border-color .15s, background .15s;}
+  .opt-item:hover{border-color:var(--green);}
+  .opt-item.active{border-color:var(--green);background:rgba(61,220,151,0.08);}
+  .opt-num{font-family:var(--font-mono);font-size:12px;color:var(--dim);background:var(--ink);border-radius:50%;width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .opt-item.active .opt-num{background:var(--green);color:var(--ink);}
+  .opt-text{font-size:13.5px;line-height:1.5;color:var(--paper);}
+
+  .quiz-footer{padding:40px 0 20px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+  .hint{font-size:13px;color:var(--dim);font-family:var(--font-mono);}
+
+  .results-hero{padding:52px 0 6px;}
+  .who-card{background:var(--panel);border:1px solid var(--hair-strong);border-radius:6px;padding:18px 22px;margin:18px 0;}
+  .who-card .k{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);}
+  .who-card .v{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--paper);margin-top:4px;}
+
+  .readout{display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:center;margin:34px 0;padding:26px;background:var(--panel);border:1px solid var(--hair-strong);border-radius:6px;}
+  .gauge-box{display:flex;flex-direction:column;align-items:center;}
+  .gauge-box svg{width:200px;height:120px;}
+  .gauge-score{font-family:var(--font-display);font-size:32px;font-weight:800;margin-top:-38px;}
+  .gauge-max{font-family:var(--font-mono);font-size:11px;color:var(--dim);}
+  .readout-facts .vt{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--green);margin-bottom:8px;}
+  .readout-facts p{margin:0;font-size:14.5px;line-height:1.6;color:var(--paper);}
+
+  .section-head{padding:52px 0 6px;}
+  .section-head .eyebrow{margin-bottom:10px;}
+  .section-head h2{font-family:var(--font-display);font-size:23px;margin:0 0 8px;font-weight:800;}
+  .section-head p{color:var(--dim);font-size:14px;line-height:1.6;margin:0;max-width:580px;}
+
+  .dim-result{background:var(--panel);border:1px solid var(--hair-strong);border-left:4px solid var(--dim);border-radius:6px;padding:22px;margin-top:16px;}
+  .dr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+  .dr-name{font-family:var(--font-display);font-size:17px;font-weight:800;}
+  .dr-level{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;border-radius:10px;padding:3px 10px;white-space:nowrap;}
+  .dr-score{font-family:var(--font-mono);font-size:12.5px;color:var(--dim);margin-bottom:12px;}
+  .bar-track{height:8px;background:var(--panel-raised);border-radius:4px;overflow:hidden;margin-bottom:12px;}
+  .bar-fill{height:100%;border-radius:4px;}
+  .dr-text{font-size:13.5px;line-height:1.55;color:var(--paper);}
+
+  .verdict{margin:8px 0 8px;padding:24px;background:var(--panel);border-left:4px solid var(--green);border-radius:2px;}
+  .verdict .vt{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--green);margin-bottom:10px;}
+  .verdict p{margin:0;line-height:1.6;font-size:15px;color:var(--paper);}
+
+  .compare-card{background:var(--panel);border:1px solid var(--hair-strong);border-radius:6px;padding:22px;margin-top:16px;}
+  .compare-inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0;}
+  .compare-inputs label{display:flex;flex-direction:column;gap:6px;font-family:var(--font-mono);font-size:10.5px;color:var(--dim);text-transform:uppercase;}
+  .compare-inputs input{background:var(--panel-raised);border:1px solid var(--hair-strong);color:var(--paper);border-radius:3px;padding:9px;font-family:var(--font-mono);font-size:14px;text-align:center;}
+  .gap-table{width:100%;border-collapse:collapse;margin-top:16px;}
+  .gap-table th{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;color:var(--dim);text-align:left;padding:8px 10px;border-bottom:1px solid var(--hair-strong);}
+  .gap-table td{padding:9px 10px;border-bottom:1px solid var(--hair);font-size:13px;}
+  .gap-pill{font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:10px;}
+
+  .seg-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13.5px;}
+  .seg-table th{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);text-align:left;padding:8px 10px;border-bottom:1px solid var(--hair-strong);}
+  .seg-table td{padding:9px 10px;border-bottom:1px solid var(--hair);}
+  .btn-sm{appearance:none;cursor:pointer;background:transparent;color:var(--green);border:1px solid var(--hair-strong);border-radius:3px;padding:9px 14px;font-family:var(--font-mono);font-size:12px;transition:all .15s;}
+  .btn-sm:hover{border-color:var(--green);}
+  .btn-sm.del{color:var(--red);}
+
+  details.advisory{margin-top:34px;padding:16px 18px;background:var(--panel-raised);border:1px solid var(--hair);border-radius:4px;font-size:12px;line-height:1.6;color:var(--dim);}
+  details.advisory summary{cursor:pointer;font-family:var(--font-mono);color:var(--paper);text-transform:uppercase;letter-spacing:.06em;font-size:11px;margin-bottom:8px;}
+
+  .action-row{padding:52px 0 20px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;}
+
+  @media (max-width:640px){
+    .role-grid{grid-template-columns:1fr;}
+    .readout{grid-template-columns:1fr;}
+    h1.title{font-size:27px;}
+    .compare-inputs{grid-template-columns:1fr;}
+  }
+
+  @media print{
+    body{background:#fff !important;color:#111 !important;}
+    .topbar,.action-row,.cta,.btn-sm{display:none !important;}
+    .screen{display:none !important;}
+    .screen#screen-results{display:block !important;}
+    .app{max-width:100%;padding:0 12mm;}
+    .readout,.dim-result,.verdict,.compare-card,.who-card,details.advisory{background:#fff !important;border:1px solid #ccc !important;color:#111 !important;}
+    .gauge-score,h1.title,h2,.q-text,.lede,p,.dr-text{color:#111 !important;}
+    .dim-result,.readout,.verdict{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar" style="display:none;">
+  <div class="topbar-inner">
+    <span class="brand-mark">TEST DE ELECTROCOMPATIBILIDAD</span>
+    <div class="track"><div class="track-fill" id="progressFill"></div></div>
+    <span class="track-count" id="progressCount">0/30</span>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- INTRO -->
+  <section class="screen active" id="screen-intro">
+    <div class="hero">
+      <div class="eyebrow">Sistema de evaluación del vendedor de VE</div>
+      <h1 class="title">Test de<br><em>electrocompatibilidad</em></h1>
+      <p class="lede">Evalúa qué tan preparado está un asesor para vender vehículos eléctricos con convicción: actitud, conocimiento técnico y competencia comercial frente al cliente.</p>
+
+      <div class="instrument">
+        <div class="meta-label">¿Quién responde?</div>
+        <div class="role-grid" id="roleGrid">
+          <button type="button" class="role-card" data-role="self">
+            <div class="rc-name">Autovaloración</div>
+            <div class="rc-desc">Eres asesor/a de ventas y quieres evaluar tu propia electrocompatibilidad.</div>
+          </button>
+          <button type="button" class="role-card" data-role="leader">
+            <div class="rc-name">Valoración Líder</div>
+            <div class="rc-desc">Eres líder del equipo y quieres valorar a un asesor observando su comportamiento.</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="instrument">
+        <div class="meta-label">Dimensiones y pesos</div>
+        <div class="dim-grid" id="dimGrid"></div>
+      </div>
+
+      <div class="instrument">
+        <div class="meta-label">Sistema de puntuación</div>
+        <div class="scale-legend">
+          <div class="scale-row"><span class="sn">0</span>Actitud/conocimiento/competencia ausente o contraria</div>
+          <div class="scale-row"><span class="sn">1</span>Nivel básico o reactivo (responde si se le exige, sin iniciativa)</div>
+          <div class="scale-row"><span class="sn">2</span>Nivel funcional (correcto pero sin diferenciación)</div>
+          <div class="scale-row"><span class="sn">3</span>Nivel avanzado (proactivo, basado en datos, orientado al cliente)</div>
+        </div>
+      </div>
+
+      <div class="instrument">
+        <div class="meta-label">Cómo responder</div>
+        <div class="meta-value" id="howToAnswer">Para cada situación, elige la opción que mejor describe lo que realmente harías o dirías — no la respuesta que crees "correcta". El resultado y su interpretación se muestran únicamente al finalizar.</div>
+      </div>
+
+      <div class="cta-row">
+        <button class="cta" id="btnStart" disabled>Selecciona quién responde</button>
+        <span class="cta-note">30 situaciones · 15-20 minutos</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="screen" id="screen-quiz">
+    <div class="quiz-head">
+      <div class="eyebrow" id="quizEyebrow">Cuestionario</div>
+      <h1 class="title" id="quizTitleMain">30 situaciones,<br><em>3 dimensiones</em></h1>
+      <div class="instrument" style="border-top:none;padding-top:0;">
+        <div class="meta-label" id="nameLabel">Nombre del asesor (opcional)</div>
+        <input type="text" class="text-input" id="nameInput" placeholder="Opcional">
+      </div>
+    </div>
+    <div id="quizContent"></div>
+    <div class="quiz-footer">
+      <span class="hint" id="quizHint">Responde las 30 situaciones para ver tu resultado.</span>
+      <button class="cta" id="btnSubmit" disabled>Ver resultado</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="screen-results">
+    <div class="results-hero">
+      <div class="eyebrow">Resultado</div>
+      <h1 class="title">Perfil de<br><em>electrocompatibilidad</em></h1>
+      <p class="lede" id="resultsLede">Puntuación ponderada por dimensión y nivel global de preparación para vender VE.</p>
+    </div>
+
+    <div class="who-card" id="whoCard"></div>
+
+    <div class="readout">
+      <div class="gauge-box">
+        <svg viewBox="0 0 200 120" id="gaugeSvg"></svg>
+        <div class="gauge-score" id="gaugeScore">0</div>
+        <div class="gauge-max">/ 100 · ELECTROCOMPATIBILIDAD</div>
+      </div>
+      <div class="readout-facts">
+        <div class="vt" id="verdictTitle">—</div>
+        <p id="verdictText">—</p>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="eyebrow">Detalle por dimensión</div>
+      <h2>Fortalezas y áreas de refuerzo</h2>
+      <p>Ordenado de mayor a menor puntuación ponderada.</p>
+    </div>
+    <div id="dimResults"></div>
+
+    <div class="section-head">
+      <div class="eyebrow">Comparar perspectivas</div>
+      <h2 id="compareTitle">Autovaloración vs. Líder</h2>
+      <p>Si ya tienes los resultados de la otra evaluación, introduce sus 3 puntuaciones ponderadas por dimensión para ver la brecha (como en la hoja COMPARATIVA del instrumento original).</p>
+    </div>
+    <div class="compare-card">
+      <div class="compare-inputs" id="compareInputs"></div>
+      <button class="cta ghost" id="btnCompare">Ver brecha</button>
+      <div id="compareResult"></div>
+    </div>
+
+    <div class="section-head">
+      <div class="eyebrow">Seguimiento</div>
+      <h2>Comparar en el tiempo</h2>
+      <p>Guarda esta evaluación en este navegador para ver la evolución de la electrocompatibilidad a lo largo del tiempo.</p>
+    </div>
+    <table class="seg-table" id="segTable">
+      <thead><tr><th>Fecha</th><th>Rol</th><th>Nombre</th><th>Total</th><th></th></tr></thead>
+      <tbody id="segTableBody"></tbody>
+    </table>
+    <div class="hint" id="segStorageNote" style="display:block;margin-top:10px;"></div>
+    <div style="margin-top:14px;"><button class="btn-sm del" id="btnClearSeg">Borrar historial guardado</button></div>
+
+    <details class="advisory">
+      <summary>Nota metodológica</summary>
+      <p>Puntuación por dimensión = (puntos obtenidos / 30) × peso de la dimensión. Dimensión A (Actitudes, peso 40%), B (Conocimientos, peso 35%), C (Competencias, peso 25%). El total ponderado es la suma de las tres (máximo 100 puntos). Niveles: 80-100 Electrocompatible avanzado · 60-79 En desarrollo · 40-59 Inicial · 0-39 No electrocompatible. Este instrumento evalúa comportamiento comercial observable frente a la venta de vehículos eléctricos; no mide inteligencia ni capacidad general, y debe usarse como herramienta de desarrollo, no de evaluación punitiva.</p>
+    </details>
+
+    <div class="action-row">
+      <button class="cta" id="btnSavePdf">Guardar respuestas y descargar PDF</button>
+      <button class="cta ghost" id="btnRestart">Repetir test</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   DATA — extraído de "test_electrocompatibilidad_1.xlsx"
+   (hojas INSTRUCCIONES, AUTOVALORACION, VALORACION_LIDER, COMPARATIVA)
+   --------------------------------------------------------------- */
+const DIMENSIONS = [
+  { key:'A', name:'Actitudes', weight:40, max:30 },
+  { key:'B', name:'Conocimientos', weight:35, max:30 },
+  { key:'C', name:'Competencias', weight:25, max:30 },
+];
+
+const ITEMS = {
+  self: {
+   A: [
+    { code:'A1', stem:`Cuando un cliente entra y pregunta por un VE, tu primera reacción interna es:`, opts:[
+      `Espero que pregunte por combustión, el VE da más trabajo`,
+      `Le atiendo aunque no domino bien el producto`,
+      `Le atiendo con normalidad, como cualquier otro cliente`,
+      `Siento motivación extra: es una oportunidad de demostrar mi conocimiento`
+    ] },
+    { code:'A2', stem:`Ante la objeción 'las baterías se degradan mucho y en 5 años no valen nada':`, opts:[
+      `Le doy la razón y le derivo a un hibrido`,
+      `Le digo que no es tan grave, sin poder argumentarlo bien`,
+      `Explico que las garantías cubren 8 años y la degradación real es menor de lo que se cree`,
+      `Reconozco que existe degradación, aporto datos reales (Recurrent, Geotab) y muestro el impacto real`
+    ] },
+    { code:'A3', stem:`Tu opinión personal sobre el futuro del VE es:`, opts:[
+      `Creo que es una moda pasajera impulsada por política, no por demanda real`,
+      `Puede que tenga futuro, pero aún no esta maduro para la mayoría`,
+      `Creo que es el futuro, aunque hay barreras reales que superar`,
+      `Estoy convencido de que es la tecnología dominante en los próximos 10-15 años`
+    ] },
+    { code:'A4', stem:`Cuando la marca lanza un nuevo modelo eléctrico, tu actitud es:`, opts:[
+      `Espero a que me den la formación obligatoria`,
+      `Leo el material que me mandan, sin profundizar`,
+      `Busco información adicional en medios especializados`,
+      `Solicito conducirlo antes de que llegue al showroom y preparo mi propio argumentario`
+    ] },
+    { code:'A5', stem:`Un companero dice: 'Yo nunca recomiendo el eléctrico porque los clientes se quejan.' Tu respuesta:`, opts:[
+      `Tienes razón, yo tampoco lo recomiendo si puedo evitarlo`,
+      `Entiendo tu posición, aunque yo lo vendo cuando el cliente lo pide`,
+      `Creo que el problema es no hacer bien la detección de necesidades`,
+      `Discrepo: el VE bien vendido genera los mejores índices de satisfacción del sector`
+    ] },
+    { code:'A6', stem:`Tienes la posibilidad de llevarte un VE a casa un fin de semana. Tu reacción:`, opts:[
+      `Prefiero no complicarme con la recarga`,
+      `Lo aceptó si no tengo que buscar donde cargarlo`,
+      `Lo aceptó con gusto para conocer mejor el producto`,
+      `Lo aceptó encantado y pruebo distintos escenarios de carga y conducción para transmitirlos`
+    ] },
+    { code:'A7', stem:`Cuando un cliente descarta el VE por el precio, tu actitud es:`, opts:[
+      `Aceptó su decisión y paso directamente a combustión`,
+      `Menciono que hay ayudas, pero sin insistir`,
+      `Explico los incentivos disponibles y el ahorro en combustible`,
+      `Hago un calculo personalizado de TCO a 4 años que demuestra la viabilidad económica real`
+    ] },
+    { code:'A8', stem:`Tu nivel de incomodidad cuando un cliente te hace una pregunta técnica sobre VE que no sabes responder:`, opts:[
+      `Alto: prefiero evitar esas conversaciones`,
+      `Moderado: me incomoda pero lo gestiono`,
+      `Bajo: reconozco que no lo se y me comprometo a averiguarlo`,
+      `Ninguno: lo veo como oportunidad de aprender y generar confianza siendo honesto`
+    ] },
+    { code:'A9', stem:`Cuando la prensa pública una noticia negativa sobre el VE, tu reacción es:`, opts:[
+      `Me refuerza en mi escepticismo sobre el VE`,
+      `Me preocupa y me hace dudar de mis argumentos`,
+      `Busco contexto y datos para entender si es un problema real o puntual`,
+      `Lo analizo, preparo una respuesta objetiva y lo uso para educar a clientes`
+    ] },
+    { code:'A10', stem:`Tu disposición a formarte en VE fuera del horario laboral es:`, opts:[
+      `Nula: la formación es responsabilidad de la empresa en horario de trabajo`,
+      `Baja: solo si hay compensación económica`,
+      `Moderada: si el contenido es relevante y práctico`,
+      `Alta: sigo podcasts, newsletters y canales especializados por iniciativa propia`
+    ] }
+   ],
+   B: [
+    { code:'B1', stem:`Un cliente pregunta cuánto le costará cargar su VE de 60 kWh desde 20% hasta 80% en casa (0,18 EUR/kWh):`, opts:[
+      `No lo sé calcular en el momento`,
+      `Unos pocos euros, pero no puedo precisar`,
+      `Unos 6,5 euros (60 kWh x 60% x 0,18 EUR)`,
+      `6,48 euros, y además explico que con tarifa nocturna podría reducirlo a menos de 4 euros`
+    ] },
+    { code:'B2', stem:`Un cliente pregunta la diferencia entre BEV, PHEV y HEV. Tu explicación es:`, opts:[
+      `No tengo clara la diferencia entre los tres`,
+      `Explico que unos son totalmente eléctricos y otros tienen motor de combustión también`,
+      `Explico correctamente los tres tipos con sus características principales`,
+      `Explico los tres tipos, sus casos de uso ideales y cual encaja mejor con el perfil del cliente`
+    ] },
+    { code:'B3', stem:`Un cliente pregunta si puede cargar su VE en cualquier enchufe de casa. Tu respuesta es:`, opts:[
+      `Si, en cualquier enchufe normal`,
+      `Si, aunque es lento`,
+      `Si, con el cable de emergencia, pero no es recomendable como uso habitual`,
+      `Explico la diferencia entre Modo 1 (schuko, no recomendado), Modo 2 y Modo 3 (wallbox, óptimo) y oriento sobre la instalación`
+    ] },
+    { code:'B4', stem:`Un cliente pregunta qué ayudas puede obtener para comprar un VE nuevo en España. Tu respuesta incluye:`, opts:[
+      `No estoy al día de las ayudas actuales`,
+      `Hay ayudas del Gobierno, pero no recuerdo los importes exactos`,
+      `Menciono el Plan MOVES III con sus importes aproximados`,
+      `Detallo MOVES III, deducción IRPF (15% hasta 3.000 EUR), ayudas autonomicas y municipales, y explico como tramitarlas`
+    ] },
+    { code:'B5', stem:`Un cliente pregunta si la autonomia WLTP es la que obtendra en la realidad. Tu respuesta es:`, opts:[
+      `Si, es la autonomia real`,
+      `Puede variar un poco según como se conduzca`,
+      `La autonomia real suele ser un 15-25% inferior a la WLTP según las condiciones`,
+      `Explico que la WLTP es un ciclo estandarizado y doy una estimación realista para el uso habitual del cliente`
+    ] },
+    { code:'B6', stem:`Un cliente pregunta cuánto tarda en cargar su VE (77 kWh, acepta hasta 100 kW DC) en un cargador de 150 kW:`, opts:[
+      `No lo sé calcular`,
+      `Unos 30-40 minutos aproximadamente`,
+      `Unos 45 min del 10% al 80%, porque el vehículo solo acepta 100 kW aunque el cargador ofrezca 150 kW`,
+      `Unos 45 min del 10% al 80%, limitado por la potencia del vehículo, y explica que la curva de carga ralentiza por encima del 80%`
+    ] },
+    { code:'B7', stem:`Un cliente pregunta si el VE tiene más o menos mantenimiento que su actual diesel. Tu respuesta es:`, opts:[
+      `Más o menos igual`,
+      `Menos, porque no tiene motor de combustión`,
+      `Significativamente menos: sin cambios de aceite, filtros, correa de distribución ni embrague`,
+      `Mucho menos, y lo cuantifico: estudios de Consumer Reports y AAA estiman un ahorro de 600-900 EUR anuales`
+    ] },
+    { code:'B8', stem:`Un cliente pregunta qué etiqueta de la DGT tiene un VE puro y que ventajas le da. Tu respuesta es:`, opts:[
+      `No lo recuerdo con exactitud`,
+      `La etiqueta verde`,
+      `Etiqueta CERO, que permite circular en ZBE y aparcar gratis en zonas reguladas en muchos municipios`,
+      `Etiqueta CERO, y explico las ventajas concretas en la ciudad del cliente: ZBE, aparcamiento, carril bus-VAO y bonificaciones en el impuesto de circulación`
+    ] },
+    { code:'B9', stem:`Un cliente pregunta si puede hacer un viaje de 600 km con un VE de 400 km de autonomia WLTP. Tu respuesta:`, opts:[
+      `Es complicado, mejor que coja el coche de combustión`,
+      `Si, pero tendrá que parar a cargar`,
+      `Si, con una parada de unos 30-40 min en un cargador rápido, que puede coincidir con una parada para comer`,
+      `Si, y le muestro la ruta con cargadores disponibles (ABRP, Chargemap), el tiempo total y como planificarlo`
+    ] },
+    { code:'B10', stem:`Un cliente pregunta qué pasará con la batería cuando el VE tenga 10 años. Tu respuesta es:`, opts:[
+      `Probablemente habrá que cambiarla y será muy caro`,
+      `La batería dura bastante, no hay que preocuparse`,
+      `Los estudios muestran una degradación media del 2-3% anual, reteniendo el 75-80% de capacidad a los 10 años`,
+      `Explico la degradación real (Recurrent/Geotab: media 2,3% anual), la garantía, la segunda vida de la batería y la bajada del 90% en coste de reemplazo`
+    ] }
+   ],
+   C: [
+    { code:'C1', stem:`Antes de mostrar cualquier VE a un cliente, tu proceso habitual es:`, opts:[
+      `Mostrar el modelo que más me gusta o el que tengo en stock`,
+      `Preguntar el presupuesto y mostrar lo que encaja`,
+      `Preguntar km diarios, si tiene garaje, tipo de uso y presupuesto`,
+      `Detección de necesidades estructurada: km diarios, viaje más largo, disponibilidad de carga, presupuesto, vehículo actual y motivo de cambio`
+    ] },
+    { code:'C2', stem:`Durante el test drive de un VE, tu rol es:`, opts:[
+      `Dejar que el cliente conduzca y esperar a que termine`,
+      `Explicar las características técnicas durante la conducción`,
+      `Guiar al cliente para que experimente la aceleración, la frenada regenerativa y el silencio, conectando esas sensaciones con su uso diario`,
+      `Disenar un recorrido específico (semáforo, urbano con recuperación, autopista) y hacer preguntas que conecten la experiencia con los beneficios del VE para ese cliente`
+    ] },
+    { code:'C3', stem:`Un cliente dice: 'Me da miedo quedarme sin batería en la autopista.' Tu respuesta es:`, opts:[
+      `Es un riesgo real, por eso hay que planificar bien`,
+      `El coche avisa con tiempo suficiente para buscar un cargador`,
+      `Explico que el VE avisa con antelación, que hay cargadores cada 50-80 km en autopistas principales y que la planificación es sencilla con las apps actuales`,
+      `Valido la preocupación, muestro en tiempo real la densidad de cargadores en las rutas habituales del cliente y le propongo planificar juntos su próximo viaje largo`
+    ] },
+    { code:'C4', stem:`Cuando un cliente firma la compra de un VE, tu proceso de entrega incluye:`, opts:[
+      `La entrega estándar del concesionario`,
+      `Explicar el funcionamiento basico del coche`,
+      `Explicar la carga en casa, la app del fabricante y los cargadores públicos principales`,
+      `Entrega específica VE: configuración de app, activación de tarjetas de recarga, carga nocturna programada, contacto directo para las primeras semanas y llamada de seguimiento a los 15 días`
+    ] },
+    { code:'C5', stem:`Para explicar el ahorro económico del VE a un cliente, tu herramienta habitual es:`, opts:[
+      `Decirle que es más barato de usar, sin calculos`,
+      `Mostrarle el coste por km aproximado`,
+      `Hacer un calculo de ahorro anual en combustible basado en sus km reales`,
+      `Presentar un TCO a 4 años que incluya precio de compra, ayudas, ahorro en combustible, ahorro en mantenimiento y valor residual, comparado con la alternativa de combustión`
+    ] },
+    { code:'C6', stem:`Un cliente (15.000 km/año, garaje, uso urbano) prefiere el hibrido porque 'el eléctrico no llega a todos lados'. Tu respuesta:`, opts:[
+      `Respeto su decisión y le muestro los hibridos disponibles`,
+      `Le explico que el eléctrico también llega a muchos sitios`,
+      `Le pregunto a que sitios se refiere y le muestro que para su uso habitual el VE es más que suficiente`,
+      `Le hago ver que con su perfil el VE es la opción óptima, aporto datos concretos y propongo un test drive de una semana para que lo compruebe el mismo`
+    ] },
+    { code:'C7', stem:`Tu capacidad para explicar el proceso de instalación de un wallbox en casa a un cliente es:`, opts:[
+      `No lo explico, le digo que llame a un electricista`,
+      `Explico que hay que instalar un punto de carga en casa, sin más detalle`,
+      `Explico el proceso general: electricista homologado, potencia recomendada (7,4 o 11 kW), coste aproximado y posibles ayudas`,
+      `Explico el proceso completo, tengo acuerdos con instaladores de confianza, conozco los tramites con la comunidad de propietarios y gestiono la instalación como parte del proceso de compra`
+    ] },
+    { code:'C8', stem:`Cuando detectas que un cliente tiene perfil ideal para VE pero muestra resistencia, tu estrategia es:`, opts:[
+      `Respetar su posición y no insistir`,
+      `Insistir en los beneficios del VE de forma generica`,
+      `Identificar la objeción principal y abordarla con información específica`,
+      `Disenar un plan de persuasión progresivo: identificar la objeción raíz, abordarla con datos, proponer un test drive y hacer seguimiento estructurado`
+    ] },
+    { code:'C9', stem:`Tu seguimiento con clientes que compraron un VE hace 3-6 meses consiste en:`, opts:[
+      `No hago seguimiento específico, ya compraron`,
+      `Les llamo si hay alguna campana de la marca`,
+      `Les llamo para saber si estan satisfechos y si tienen alguna duda`,
+      `Tengo un protocolo: llamada a los 15 días, a los 3 meses y a los 6 meses. Recojo su experiencia, resuelvo dudas, informo de actualizaciones y pido referidos activamente`
+    ] },
+    { code:'C10', stem:`Cuando un cliente satisfecho con su VE te llama para contarte su experiencia positiva, tu respuesta es:`, opts:[
+      `Me alegro, pero no le doy mayor importancia comercial`,
+      `Le agradezco la llamada y cierro la conversación`,
+      `Le pido que me cuente detalles para mejorar mi argumentario`,
+      `Le pido permiso para usar su testimonio, le pregunto si conoce a alguien pensando en cambiar de coche y registro el contacto en mi CRM`
+    ] }
+   ],
+  },
+  leader: {
+   A: [
+    { code:'A1', stem:`Cuando un cliente entra y pregunta por un VE, la reacción observable del asesor es:`, opts:[
+      `Muestra incomodidad o intenta derivar la consulta a otro companero`,
+      `Atiende al cliente pero sin mostrar iniciativa ni entusiasmo`,
+      `Atiende con normalidad y profesionalidad`,
+      `Muestra motivación visible, toma la iniciativa y demuestra dominio del producto`
+    ] },
+    { code:'A2', stem:`Cuando un cliente plantea objeciones sobre la batería o la degradación, el asesor:`, opts:[
+      `Cede ante la objeción y deriva al cliente hacia opciones de combustión`,
+      `Intenta rebatirla pero sin argumentos sólidos ni datos`,
+      `Responde con información correcta sobre garantías y degradación real`,
+      `Gestiona la objeción con datos contrastados y la reencuadra en el contexto del uso real`
+    ] },
+    { code:'A3', stem:`En conversaciones informales con el equipo, la posición del asesor sobre el futuro del VE es:`, opts:[
+      `Expresa escepticismo o crítica abierta hacia el VE`,
+      `Muestra ambivalencia: ni lo defiende ni lo crítica`,
+      `Muestra una posición positiva aunque con reservas`,
+      `Defiende el VE con convicción y actua como embajador interno de la tecnología`
+    ] },
+    { code:'A4', stem:`Ante el lanzamiento de un nuevo modelo eléctrico de la marca, el asesor:`, opts:[
+      `Espera a recibir la formación obligatoria sin mostrar interés previo`,
+      `Lee el material enviado por la marca sin ir más alla`,
+      `Busca información adicional en medios especializados por iniciativa propia`,
+      `Solicita conducir el modelo antes de su llegada al showroom y comparte lo aprendido`
+    ] },
+    { code:'A5', stem:`Cuando un companero expresa resistencia a vender VE, el asesor:`, opts:[
+      `Refuerza esa posición o guarda silencio`,
+      `No interviene pero tampoco comparte esa posición`,
+      `Ofrece una perspectiva diferente de forma constructiva`,
+      `Argumenta con datos y experiencias propias por que el VE bien vendido genera los mejores resultados`
+    ] },
+    { code:'A6', stem:`Cuando se ofrece al asesor la posibilidad de llevarse un VE a casa, este:`, opts:[
+      `Declina o pone excusas para no hacerlo`,
+      `Acepta pero no extrae aprendizajes del uso`,
+      `Acepta y comenta la experiencia con el equipo`,
+      `Acepta, prueba distintos escenarios y comparte aprendizajes concretos con el equipo`
+    ] },
+    { code:'A7', stem:`Cuando un cliente descarta el VE por el precio, el asesor observado:`, opts:[
+      `Acepta la objeción sin argumentar y pasa a combustión`,
+      `Menciona las ayudas de forma superficial`,
+      `Explica los incentivos y el ahorro en combustible de forma estructurada`,
+      `Realiza un calculo personalizado de TCO que demuestra la viabilidad económica real`
+    ] },
+    { code:'A8', stem:`Cuando el asesor no sabe responder una pregunta técnica sobre VE, su comportamiento es:`, opts:[
+      `Evita la pregunta, cambia de tema o da una respuesta incorrecta`,
+      `Se incomoda visiblemente pero gestiona la situación`,
+      `Reconoce que no lo sabe y se compromete a averiguarlo`,
+      `Lo gestiona con naturalidad y hace seguimiento posterior con la respuesta correcta`
+    ] },
+    { code:'A9', stem:`Cuando aparece una noticia negativa sobre el VE, el asesor:`, opts:[
+      `La usa como argumento para no recomendar el VE`,
+      `Muestra inseguridad ante clientes que la mencionan`,
+      `Busca contexto y datos antes de opinar`,
+      `Prepara una respuesta objetiva y la usa proactivamente con clientes que la mencionan`
+    ] },
+    { code:'A10', stem:`La formación autonoma del asesor en VE (fuera de la formación obligatoria) es:`, opts:[
+      `Inexistente: solo realiza la formación obligatoria`,
+      `Puntual: solo cuando hay incentivo económico o presión del lider`,
+      `Moderada: realiza formaciones adicionales cuando se las recomiendan`,
+      `Proactiva: sigue fuentes especializadas y comparte contenido con el equipo`
+    ] }
+   ],
+   B: [
+    { code:'B1', stem:`Cuando un cliente pregunta el coste de carga en casa, el asesor:`, opts:[
+      `No es capaz de hacer el cálculo en el momento`,
+      `Da una respuesta aproximada sin calculo`,
+      `Calcula correctamente el coste de la carga parcial`,
+      `Calcula con precisión e incorpora la variable de tarifa nocturna para optimizar el coste`
+    ] },
+    { code:'B2', stem:`Cuando un cliente pregunta la diferencia entre BEV, PHEV y HEV, el asesor:`, opts:[
+      `No tiene clara la diferencia entre los tres tipos`,
+      `Explica que unos son totalmente eléctricos y otros tienen motor de combustión`,
+      `Explica correctamente los tres tipos con sus características principales`,
+      `Explica los tres tipos, sus casos de uso ideales y cual encaja mejor con el perfil del cliente`
+    ] },
+    { code:'B3', stem:`Cuando un cliente pregunta sobre la carga en casa, el asesor:`, opts:[
+      `Dice que si, en cualquier enchufe normal`,
+      `Dice que si, aunque es lento`,
+      `Explica que el cable de emergencia no es recomendable como uso habitual`,
+      `Explica la diferencia entre Modo 1, 2 y 3 y orienta sobre la instalación del wallbox`
+    ] },
+    { code:'B4', stem:`Cuando un cliente pregunta por las ayudas disponibles para comprar un VE, el asesor:`, opts:[
+      `No esta al día de las ayudas actuales`,
+      `Menciona que hay ayudas del Gobierno sin precisar importes`,
+      `Menciona el Plan MOVES III con sus importes aproximados`,
+      `Detalla MOVES III, deducción IRPF, ayudas autonomicas y municipales, y explica como tramitarlas`
+    ] },
+    { code:'B5', stem:`Cuando un cliente pregunta si la autonomia WLTP es la real, el asesor:`, opts:[
+      `Confirma que es la autonomia real`,
+      `Dice que puede variar un poco según la conducción`,
+      `Explica que la autonomia real suele ser un 15-25% inferior a la WLTP`,
+      `Explica el ciclo WLTP y da una estimación realista adaptada al uso habitual del cliente`
+    ] },
+    { code:'B6', stem:`Cuando un cliente pregunta sobre tiempos de carga rápida, el asesor:`, opts:[
+      `No es capaz de calcular el tiempo de carga`,
+      `Da una estimación aproximada sin explicar el motivo`,
+      `Calcula correctamente teniendo en cuenta la potencia máxima del vehículo`,
+      `Calcula correctamente y explica la curva de carga y la razón de ralentizar por encima del 80%`
+    ] },
+    { code:'B7', stem:`Cuando un cliente pregunta sobre el mantenimiento del VE frente al diesel, el asesor:`, opts:[
+      `Dice que es más o menos igual`,
+      `Dice que menos, porque no tiene motor de combustión, sin más detalle`,
+      `Explica correctamente los elementos que desaparecen en el VE`,
+      `Cuantifica el ahorro con datos de estudios (Consumer Reports, AAA: 600-900 EUR anuales)`
+    ] },
+    { code:'B8', stem:`Cuando un cliente pregunta por la etiqueta DGT del VE y sus ventajas, el asesor:`, opts:[
+      `No recuerda con exactitud la etiqueta ni sus ventajas`,
+      `Menciona la etiqueta verde (error: es CERO)`,
+      `Identifica correctamente la etiqueta CERO y sus ventajas principales`,
+      `Identifica la etiqueta CERO y adapta las ventajas concretas a la ciudad del cliente`
+    ] },
+    { code:'B9', stem:`Cuando un cliente pregunta si puede hacer un viaje largo con el VE, el asesor:`, opts:[
+      `Desaconseja el viaje o sugiere usar el coche de combustión`,
+      `Confirma que es posible pero sin dar detalles`,
+      `Explica que es posible con una parada de 30-40 min en un cargador rápido`,
+      `Muestra la ruta con cargadores disponibles y planifica el viaje con el cliente en tiempo real`
+    ] },
+    { code:'B10', stem:`Cuando un cliente pregunta por la durabilidad de la batería a largo plazo, el asesor:`, opts:[
+      `Advierte de que probablemente habrá que cambiarla y será muy caro`,
+      `Dice que la batería dura bastante sin aportar datos`,
+      `Aporta datos de degradación real (2-3% anual, 75-80% de capacidad a los 10 años)`,
+      `Explica degradación real, garantía, segunda vida de la batería y evolución del coste de reemplazo`
+    ] }
+   ],
+   C: [
+    { code:'C1', stem:`Antes de mostrar cualquier VE a un cliente, el proceso habitual del asesor es:`, opts:[
+      `Mostrar el modelo que más le gusta o el que tiene en stock`,
+      `Preguntar el presupuesto y mostrar lo que encaja`,
+      `Preguntar km diarios, garaje, tipo de uso y presupuesto`,
+      `Detección de necesidades estructurada: km diarios, viaje más largo, disponibilidad de carga, presupuesto, vehículo actual y motivo de cambio`
+    ] },
+    { code:'C2', stem:`Durante el test drive de un VE, el rol del asesor es:`, opts:[
+      `Deja que el cliente conduzca y espera a que termine`,
+      `Explica las características técnicas durante la conducción`,
+      `Guia al cliente para que experimente las sensaciones clave conectandolas con su uso diario`,
+      `Disena un recorrido específico y hace preguntas que conectan la experiencia con los beneficios del VE para ese cliente`
+    ] },
+    { code:'C3', stem:`Cuando un cliente expresa miedo a quedarse sin batería, el asesor:`, opts:[
+      `Reconoce que es un riesgo real sin ofrecer solución`,
+      `Dice que el coche avisa con tiempo suficiente, sin más detalle`,
+      `Explica la densidad de cargadores en autopistas y las apps de planificación`,
+      `Valida la preocupación, muestra cargadores en las rutas habituales del cliente y propone planificar juntos`
+    ] },
+    { code:'C4', stem:`El proceso de entrega de un VE por parte del asesor incluye:`, opts:[
+      `La entrega estándar del concesionario sin elementos específicos de VE`,
+      `Explica el funcionamiento basico del coche`,
+      `Explica la carga en casa, la app del fabricante y los cargadores públicos principales`,
+      `Entrega específica VE: configuración de app, tarjetas de recarga, carga nocturna, contacto directo y llamada de seguimiento a los 15 días`
+    ] },
+    { code:'C5', stem:`Para explicar el ahorro económico del VE, la herramienta habitual del asesor es:`, opts:[
+      `Decir que es más barato de usar, sin calculos`,
+      `Mostrar el coste por km aproximado`,
+      `Calcular el ahorro anual en combustible basado en los km reales del cliente`,
+      `Presentar un TCO a 4 años completo comparado con la alternativa de combustión`
+    ] },
+    { code:'C6', stem:`Ante un cliente con perfil ideal para VE que prefiere el hibrido, el asesor:`, opts:[
+      `Respeta la decisión y muestra los hibridos disponibles sin argumentar`,
+      `Explica que el eléctrico también llega a muchos sitios sin personalizar`,
+      `Pregunta a que sitios se refiere y muestra que para su uso habitual el VE es suficiente`,
+      `Demuestra con datos que el VE es la opción óptima para ese perfil y propone un test drive de una semana`
+    ] },
+    { code:'C7', stem:`La capacidad del asesor para explicar la instalación de un wallbox es:`, opts:[
+      `No lo explica, deriva al cliente a un electricista`,
+      `Explica que hay que instalar un punto de carga, sin más detalle`,
+      `Explica el proceso general: electricista homologado, potencia recomendada y coste aproximado`,
+      `Explica el proceso completo, tiene acuerdos con instaladores y gestiona la instalación como parte del proceso de compra`
+    ] },
+    { code:'C8', stem:`Cuando el asesor detecta un cliente con perfil ideal para VE pero con resistencia, su estrategia es:`, opts:[
+      `Respetar la posición del cliente y no insistir`,
+      `Insistir en los beneficios del VE de forma generica`,
+      `Identificar la objeción principal y abordarla con información específica`,
+      `Disenar un plan de persuasión progresivo: objeción raíz, datos, test drive y seguimiento estructurado`
+    ] },
+    { code:'C9', stem:`El seguimiento del asesor con clientes que compraron un VE hace 3-6 meses consiste en:`, opts:[
+      `No hace seguimiento específico una vez realizada la venta`,
+      `Llama si hay alguna campana de la marca`,
+      `Llama para saber si estan satisfechos y si tienen alguna duda`,
+      `Tiene un protocolo de seguimiento: 15 días, 3 meses y 6 meses, con recogida de experiencia y solicitud activa de referidos`
+    ] },
+    { code:'C10', stem:`Cuando un cliente satisfecho con su VE contacta al asesor, este:`, opts:[
+      `Atiende la llamada sin aprovecharla comercialmente`,
+      `Agradece el contacto y cierra la conversación`,
+      `Recoge detalles de la experiencia para mejorar su argumentario`,
+      `Pide permiso para usar el testimonio, solicita referidos activamente y registra el contacto en el CRM`
+    ] }
+   ],
+  }
+};
+
+const OPT_LABELS = ['0 — Ausente','1 — Básico','2 — Funcional','3 — Avanzado'];
+
+const TOTAL_LEVELS = [
+  { max:39,  label:'No electrocompatible', color:'#E0645C', meaning:'Barreras significativas frente a la venta de VE.', action:'Riesgo de desvío activo al cliente hacia combustión. Requiere formación e intervención prioritaria.' },
+  { max:59,  label:'Inicial',              color:'#E8A855', meaning:'Hay interés, pero existen barreras reales de actitud o conocimiento.', action:'Plan de formación estructurado en las dimensiones más débiles.' },
+  { max:79,  label:'En desarrollo',        color:'#47B8E0', meaning:'Base sólida para vender VE.', action:'Reforzar áreas específicas para consolidar el perfil.' },
+  { max:100, label:'Electrocompatible avanzado', color:'#3DDC97', meaning:'Referente del equipo.', action:'Vende VE con convicción, datos y proceso. Puede actuar como mentor de otros asesores.' },
+];
+function levelFor(score, table){ return table.find(l=>score<=l.max) || table[table.length-1]; }
+
+let role = null; // 'self' | 'leader'
+const answers = {}; // dimKey -> [idx,idx,...] (10 each, null if unanswered)
+let advisorName = '';
+let results = null;
+
+/* ---------------------------------------------------------------
+   PERSISTENCIA LOCAL
+   --------------------------------------------------------------- */
+const STORAGE_KEY = 'electrocompat_historial_v1';
+const isFileProtocol = (window.location.protocol === 'file:');
+let storageAvailable = true;
+(function testStorage(){
+  try{ const k='__ec_test__'; window.localStorage.setItem(k,'1'); storageAvailable = window.localStorage.getItem(k)==='1'; window.localStorage.removeItem(k); }
+  catch(e){ storageAvailable = false; }
+})();
+function loadHist(){ if(!storageAvailable) return []; try{ const raw = window.localStorage.getItem(STORAGE_KEY); return raw?JSON.parse(raw):[]; }catch(e){ storageAvailable=false; return []; } }
+function saveHist(){ if(!storageAvailable) return; try{ window.localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); }catch(e){ storageAvailable=false; } }
+let history = loadHist();
+
+/* ---------------------------------------------------------------
+   NAVIGATION
+   --------------------------------------------------------------- */
+const screens = { intro: document.getElementById('screen-intro'), quiz: document.getElementById('screen-quiz'), results: document.getElementById('screen-results') };
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.remove('active'));
+  screens[name].classList.add('active');
+  document.getElementById('topbar').style.display = (name==='quiz') ? 'block' : 'none';
+  window.scrollTo({top:0, behavior:'auto'});
+}
+
+(function initDimGrid(){
+  document.getElementById('dimGrid').innerHTML = DIMENSIONS.map(d=>`
+    <div class="dim-mini">
+      <span class="dm-name">${d.key} — ${d.name}</span>
+      <span class="dm-weight">10 preguntas · peso ${d.weight}%</span>
+    </div>`).join('');
+})();
+
+document.getElementById('roleGrid').addEventListener('click',(e)=>{
+  const btn = e.target.closest('.role-card'); if(!btn) return;
+  role = btn.dataset.role;
+  document.querySelectorAll('.role-card').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStart').textContent = 'Iniciar test';
+  document.getElementById('howToAnswer').textContent = role==='self'
+    ? 'Para cada situación, elige la opción que mejor describe lo que realmente harías o dirías — no la respuesta que crees "correcta". El resultado se muestra únicamente al finalizar.'
+    : 'Para cada situación, elige la opción que mejor describe el comportamiento que observas en tu asesor/a — basado en hechos observables, no en suposiciones.';
+});
+
+document.getElementById('btnStart').addEventListener('click', ()=>{ buildQuiz(); showScreen('quiz'); });
+document.getElementById('btnRestart').addEventListener('click', ()=>{
+  DIMENSIONS.forEach(d=> answers[d.key] = new Array(10).fill(null));
+  advisorName = '';
+  showScreen('intro');
+});
+
+/* ---------------------------------------------------------------
+   QUIZ BUILD
+   --------------------------------------------------------------- */
+function buildQuiz(){
+  DIMENSIONS.forEach(d=> answers[d.key] = new Array(10).fill(null));
+  document.getElementById('quizEyebrow').textContent = role==='self' ? 'Autovaloración' : 'Valoración del líder';
+  document.getElementById('quizTitleMain').innerHTML = role==='self'
+    ? '30 situaciones,<br><em>3 dimensiones</em>'
+    : 'Evaluación del<br><em>asesor</em>';
+  document.getElementById('nameLabel').textContent = role==='self' ? 'Tu nombre (opcional)' : 'Nombre del asesor evaluado (opcional)';
+  document.getElementById('nameInput').value = advisorName;
+
+  const root = document.getElementById('quizContent');
+  root.innerHTML = '';
+  DIMENSIONS.forEach(dim=>{
+    const items = ITEMS[role][dim.key];
+    const block = document.createElement('div');
+    block.innerHTML = `
+      <div class="dim-header">
+        <div class="dim-tag">Dimensión ${dim.key} · peso ${dim.weight}%</div>
+        <div class="dim-title">${dim.name}</div>
+      </div>
+    `;
+    items.forEach((item, qi)=>{
+      const card = document.createElement('div');
+      card.className = 'q-card';
+      card.innerHTML = `
+        <div class="q-top">
+          <span class="q-idx">${item.code}</span>
+          <span class="q-text">${item.stem}</span>
+        </div>
+        <div class="opt-list" data-dim="${dim.key}" data-qi="${qi}">
+          ${item.opts.map((opt,oi)=>`
+            <div class="opt-item" data-val="${oi}">
+              <span class="opt-num">${oi}</span>
+              <span class="opt-text">${opt}</span>
+            </div>`).join('')}
+        </div>
+      `;
+      block.appendChild(card);
+    });
+    root.appendChild(block);
+  });
+
+  root.querySelectorAll('.opt-list').forEach(list=>{
+    list.addEventListener('click',(e)=>{
+      const item = e.target.closest('.opt-item'); if(!item) return;
+      const dim = list.dataset.dim, qi = parseInt(list.dataset.qi,10);
+      answers[dim][qi] = parseInt(item.dataset.val,10);
+      list.querySelectorAll('.opt-item').forEach(o=>o.classList.remove('active'));
+      item.classList.add('active');
+      updateProgress();
+    });
+  });
+  document.getElementById('nameInput').addEventListener('input', ()=>{ advisorName = document.getElementById('nameInput').value; });
+  updateProgress();
+}
+
+function updateProgress(){
+  let n = 0;
+  DIMENSIONS.forEach(d=> answers[d.key].forEach(v=>{ if(v!==null) n++; }));
+  const total = 30;
+  document.getElementById('progressFill').style.width = (n/total*100)+'%';
+  document.getElementById('progressCount').textContent = n+'/'+total;
+  const complete = n===total;
+  document.getElementById('btnSubmit').disabled = !complete;
+  document.getElementById('quizHint').textContent = complete
+    ? 'Todo listo. Puedes ver tu resultado.'
+    : `Responde las 30 situaciones para ver tu resultado (${n}/${total}).`;
+}
+document.getElementById('btnSubmit').addEventListener('click', ()=>{ showScreen('results'); computeAndRender(); });
+
+/* ---------------------------------------------------------------
+   SCORING
+   --------------------------------------------------------------- */
+function computeResults(){
+  const perDim = DIMENSIONS.map(dim=>{
+    const raw = answers[dim.key].reduce((s,v)=>s+v,0); // max 30
+    const weighted = Math.round((raw/dim.max)*dim.weight*10)/10;
+    return { ...dim, raw, weighted };
+  });
+  const total = Math.round(perDim.reduce((s,d)=>s+d.weighted,0)*10)/10;
+  return { perDim, total };
+}
+
+/* ---------------------------------------------------------------
+   RESULTS RENDER
+   --------------------------------------------------------------- */
+function computeAndRender(){
+  results = computeResults();
+  const gl = levelFor(results.total, TOTAL_LEVELS);
+
+  document.getElementById('gaugeScore').textContent = results.total;
+  document.getElementById('verdictTitle').textContent = gl.label.toUpperCase();
+  document.getElementById('verdictText').textContent = gl.meaning + ' ' + gl.action;
+
+  document.getElementById('whoCard').innerHTML = `
+    <span class="k">${role==='self' ? 'Autovaloración' : 'Valoración líder'}${advisorName ? ' · '+advisorName : ''}</span>
+    <div class="v">${advisorName || '(sin nombre especificado)'}</div>
+  `;
+
+  try{ drawGauge(results.total, gl.color); }catch(e){ console.error('gauge', e); }
+  try{ renderDimResults(); }catch(e){ console.error('dims', e); }
+  try{ renderCompare(); }catch(e){ console.error('compare', e); }
+
+  try{
+    const now = new Date();
+    const stamp = now.toISOString().slice(0,16).replace('T',' ');
+    history.push({ date:stamp, role, name: advisorName || '(sin nombre)', total: results.total });
+    if(history.length>8) history.shift();
+    saveHist();
+    renderHistory();
+  }catch(e){ console.error('historial', e); }
+}
+
+function drawGauge(total, color){
+  const svg = document.getElementById('gaugeSvg');
+  const cx=100, cy=110, r=90;
+  function pt(deg){ const rad=(deg-180)*Math.PI/180; return [cx+r*Math.cos(rad), cy+r*Math.sin(rad)]; }
+  function arcPath(a0,a1){ const [x0,y0]=pt(a0),[x1,y1]=pt(a1); const large=(a1-a0)>180?1:0; return `M${x0},${y0} A${r},${r} 0 ${large} 1 ${x1},${y1}`; }
+  const bounds=[0,39,59,79,100].map(v=>v/100*180);
+  const colors=['#E0645C','#E8A855','#47B8E0','#3DDC97'];
+  let arcs='';
+  for(let i=0;i<4;i++) arcs += `<path d="${arcPath(bounds[i],bounds[i+1])}" stroke="${colors[i]}" stroke-width="14" fill="none" stroke-linecap="round"/>`;
+  const [nx,ny] = pt((total/100)*180);
+  svg.innerHTML = arcs + `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="5" fill="var(--paper)"/>`;
+}
+
+function renderDimResults(){
+  const root = document.getElementById('dimResults');
+  root.innerHTML = '';
+  const sorted = [...results.perDim].sort((a,b)=>b.weighted-a.weighted);
+  sorted.forEach(d=>{
+    const pctOfMax = (d.weighted/d.weight)*100; // nivel relativo de esta dimensión
+    const lvl = levelFor(pctOfMax, TOTAL_LEVELS);
+    const card = document.createElement('div');
+    card.className = 'dim-result';
+    card.style.borderLeftColor = lvl.color;
+    card.innerHTML = `
+      <div class="dr-top">
+        <span class="dr-name">${d.key} — ${d.name}</span>
+        <span class="dr-level" style="background:${lvl.color}22;color:${lvl.color}">${lvl.label}</span>
+      </div>
+      <div class="dr-score">Puntuación bruta: ${d.raw} / 30 · Ponderada: ${d.weighted} / ${d.weight}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pctOfMax}%;background:${lvl.color}"></div></div>
+      <div class="dr-text">${lvl.meaning} ${lvl.action}</div>
+    `;
+    root.appendChild(card);
+  });
+}
+
+function renderCompare(){
+  document.getElementById('compareTitle').textContent = role==='self'
+    ? 'Tu autovaloración vs. la valoración de tu líder'
+    : 'Tu valoración vs. la autovaloración del asesor';
+  const root = document.getElementById('compareInputs');
+  root.innerHTML = DIMENSIONS.map(d=>`
+    <label>${d.key} — ${d.name} (máx ${d.weight})
+      <input type="number" min="0" max="${d.weight}" step="0.1" data-dim="${d.key}" placeholder="0-${d.weight}">
+    </label>
+  `).join('');
+  document.getElementById('compareResult').innerHTML = '';
+}
+
+document.getElementById('btnCompare').addEventListener('click', ()=>{
+  const inputs = document.querySelectorAll('#compareInputs input');
+  const otherScores = {};
+  let valid = true;
+  inputs.forEach(inp=>{
+    const dim = DIMENSIONS.find(d=>d.key===inp.dataset.dim);
+    const v = parseFloat(inp.value);
+    if(isNaN(v) || v<0 || v>dim.weight) valid = false;
+    otherScores[inp.dataset.dim] = v;
+  });
+  if(!valid){ alert('Introduce las 3 puntuaciones ponderadas de la otra evaluación (dentro de su rango máximo).'); return; }
+
+  const rows = DIMENSIONS.map(d=>{
+    const own = results.perDim.find(p=>p.key===d.key).weighted;
+    const other = otherScores[d.key];
+    // Convención (igual que la hoja COMPARATIVA): brecha = Líder − Autovaloración
+    const gap = Math.round(((role==='self' ? (other-own) : (own-other)))*10)/10;
+    let pillColor, pillLabel;
+    if(Math.abs(gap)<=3){ pillColor='#3DDC97'; pillLabel='Alineados'; }
+    else if(gap>3){ pillColor='#E8A855'; pillLabel='Líder valora más alto (posible infravaloración)'; }
+    else { pillColor='#E0645C'; pillLabel='Líder valora más bajo (posible sobrevaloración)'; }
+    return `<tr>
+      <td>${d.key} — ${d.name}</td>
+      <td>${role==='self'?own:other}</td>
+      <td>${role==='self'?other:own}</td>
+      <td>${gap>0?'+':''}${gap}</td>
+      <td><span class="gap-pill" style="background:${pillColor}22;color:${pillColor}">${pillLabel}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('compareResult').innerHTML = `
+    <table class="gap-table">
+      <thead><tr><th>Dimensión</th><th>Autovaloración</th><th>Líder</th><th>Brecha</th><th>Interpretación</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="hint" style="margin-top:12px;">Brecha entre -3 y +3: alineados. Fuera de ese rango, indica una diferencia de percepción que vale la pena conversar.</p>
+  `;
+});
+
+/* ---------------------------------------------------------------
+   HISTORIAL
+   --------------------------------------------------------------- */
+document.getElementById('btnClearSeg').addEventListener('click', ()=>{
+  if(!confirm('¿Borrar todo el historial guardado en este navegador? Esta acción no se puede deshacer.')) return;
+  history = [];
+  saveHist();
+  renderHistory();
+});
+function renderHistory(){
+  const body = document.getElementById('segTableBody');
+  const note = document.getElementById('segStorageNote');
+  if(note){
+    if(storageAvailable){ note.textContent = 'Este historial se guarda solo en este navegador — nadie más puede verlo.'; note.style.color=''; }
+    else if(isFileProtocol){ note.innerHTML = '⚠️ Este navegador no está guardando datos porque abriste el archivo directamente (file://). Aloja este archivo en un servidor (GitHub Pages, Netlify, tu intranet) y ábrelo con http:// o https:// para que el guardado funcione de forma fiable.'; note.style.color='var(--amber)'; }
+    else{ note.innerHTML = '⚠️ Este navegador no permite guardar datos localmente (modo privado o configuración del navegador). El historial solo durará esta sesión.'; note.style.color='var(--amber)'; }
+  }
+  body.innerHTML = '';
+  history.forEach((h,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${h.date}</td><td>${h.role==='self'?'Autovaloración':'Líder'}</td><td>${h.name}</td><td>${h.total}/100</td><td><button class="btn-sm del" data-i="${i}">Eliminar</button></td>`;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('.del').forEach(b=>b.addEventListener('click',(e)=>{
+    const i = parseInt(e.target.dataset.i,10);
+    history.splice(i,1); saveHist(); renderHistory();
+  }));
+}
+
+/* ---------------------------------------------------------------
+   SAVE + PDF
+   --------------------------------------------------------------- */
+document.getElementById('btnSavePdf').addEventListener('click', ()=>{ window.print(); });
+</script>
+</body>
+</html>
